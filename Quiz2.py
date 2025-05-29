@@ -118,6 +118,23 @@ def move_player(dx, dy):
 
         if next_spot.end:
             messagebox.showinfo("Success", "You reached the goal!")
+            print("Player path:", player_path)
+
+def reset_path():
+    for x, y in player_path:
+        if (x, y) == Spot.start_point:
+            grid[y][x].button.config(bg="Orange")
+        else:
+            grid[y][x].button.config(bg="gray90")
+    
+    # Set initial player position
+    col, row = Spot.start_point
+    player_position[0] = (col, row)
+    grid[row][col].button.config(bg="red")  # Starting player color
+
+    # Reset and initialize player path
+    player_path.clear()
+    player_path.append((col, row))
 
 def start_game():
     if not Spot.start_point or not Spot.end_point: 
@@ -138,7 +155,7 @@ def start_game():
     player_path.append((col, row))
 
     # Reset button
-    reset_button = Button(UI_frame, text='Reset', command=start_game, font = ("Times New Roman", 14), bg='red')
+    reset_button = Button(UI_frame, text='Reset', command=reset_path, font = ("Times New Roman", 14), bg='red')
     reset_button.grid(row=5, column=0, padx=5, pady=(10, 10))
 
 def on_key(event):
