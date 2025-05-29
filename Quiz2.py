@@ -1,7 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
+from tkinter import ttk
 import random
 import heapq
+
 
 reset_button = None  # Dideklarasikan global
 
@@ -17,7 +19,9 @@ class Spot:
         
         self.button = Button(canvas,
          command = lambda: self.click(),
-         bg='gray90', bd=2, relief=GROOVE
+         bg='#90EE90', bd=1, relief=GROOVE,
+         font=('Segoe UI Emoji', 8, 'bold'),
+         activebackground='#98FB98'
         )
         
         self.row = row
@@ -33,24 +37,24 @@ class Spot:
         self.total_rows = total_rows
     
     def make_start(self):
-        self.button.config(bg = "Orange")
+        self.button.config(bg="#EAB71D", text="▶️", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
         self.start = True
         self.clicked = True
         Spot.start_point = (self.col, self.row)
         
     def make_end(self):
-        self.button.config(bg = "lime green")
+        self.button.config(bg="#4ECDC4", text="🏁", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
         self.end = True
         self.clicked = True
         Spot.end_point = (self.col, self.row)
         
     def make_obstacle(self):
-        self.button.config(bg = "black")
+        self.button.config(bg="#2C3E50", text="🌲", fg="white", font=('Segoe UI Emoji', 10, 'bold'))
         self.obstacle = True
         self.clicked = True
 
     def reset(self):
-        self.button.config(bg = "gray90")
+        self.button.config(bg="#90EE90", text="", fg="black", font=('Segoe UI Emoji', 8, 'bold'))
         self.clicked = False
     
     def click(self):
@@ -108,13 +112,15 @@ def move_player(dx, dy):
         # Reset previous
         current_spot = grid[y][x]
         if current_spot.start:  # Keep start color if it's the starting point
-            current_spot.button.config(bg="Orange")
+            current_spot.button.config(bg="#EAB71D", text="▶️", fg="white")
+
         else:
-            current_spot.button.config(bg="deepskyblue")
+            current_spot.button.config(bg="#87CEEB", text="👣", fg="white", font=('Segoe UI Emoji', 10, 'bold'))
+
         
         # Update position
         player_position[0] = (new_x, new_y)
-        next_spot.button.config(bg="red")
+        next_spot.button.config(bg="#EAB71D", text="🧭", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
 
         # Record move if not already visited
         if (new_x, new_y) not in player_path:
@@ -126,16 +132,17 @@ def move_player(dx, dy):
 def reset_path():
     for x, y in player_path:
         if (x, y) == Spot.start_point:
-            grid[y][x].button.config(bg="Orange")
+            grid[y][x].button.config(bg="#EAB71D", text="▶️", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
+
         elif (x, y) == Spot.end_point:
-            grid[y][x].button.config(bg="lime green")
+            grid[y][x].button.config(bg="#00A846", text="🏁", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
         else:
-            grid[y][x].button.config(bg="gray90")
+            grid[y][x].button.config(bg="#6B6B6B", text="", fg="black")
     
     # Set initial player position
     col, row = Spot.start_point
     player_position[0] = (col, row)
-    grid[row][col].button.config(bg="red")  # Starting player color
+    grid[row][col].button.config(bg="#EAB71D", text="🧭", fg="white", font=('Segoe UI Emoji', 12, 'bold'))  # Starting player color
 
     # Reset and initialize player path
     player_path.clear()
@@ -153,7 +160,7 @@ def reset_all():
             spot.end = False
             spot.obstacle = False
             spot.clicked = False
-            spot.button.config(bg='gray90', state=NORMAL)
+            spot.button.config(bg='#90EE90', text="", fg="black", state=NORMAL)
             
     start_button.grid()  # Menampilkan kembali tombol Start Game
     if reset_button:
@@ -165,12 +172,13 @@ def end_game():
     # Warnai shortest path (kecuali start dan end)
     for x, y in shortest_path:
         if (x, y) != Spot.start_point and (x, y) != Spot.end_point:
-            grid[y][x].button.config(bg="yellow")
+            grid[y][x].button.config(bg="#FFD700", text="⭐", fg="white", font=('Segoe UI Emoji', 10, 'bold'))
 
     if player_path == shortest_path:
-        messagebox.showinfo("You win!", "You followed Dijkstra's shortest path!")
+        messagebox.showinfo("🎉 You Win! 🎉", "Congratulations! You followed Dijkstra's shortest path!\n\n🏆 Perfect Navigation! 🏆")
     else:
-        messagebox.showinfo("Incorrect path", "That's not Dijkstra's shortest path.")
+        messagebox.showinfo("🤔 Try Again!", f"That's not the optimal path.\n\nYour path: {len(player_path)} steps\nShortest path: {len(shortest_path)} steps\n\n💡 The golden stars show the optimal route!")
+
 
     print("Player path:", player_path)
     print("Shortest path:", shortest_path)
@@ -178,7 +186,7 @@ def end_game():
 def start_game():
     global reset_button  # <--- Tambah ini
     if not Spot.start_point or not Spot.end_point: 
-        messagebox.showinfo("No start/end", "Place starting and ending points")
+        messagebox.showinfo("⚠️ Setup Required", "Please place both starting point (▶️) and ending point (🏁) first!")
         return
     for row in grid:
         for spot in row:
@@ -187,14 +195,16 @@ def start_game():
 
     col, row = Spot.start_point
     player_position[0] = (col, row)
-    grid[row][col].button.config(bg="red")
+    grid[row][col].button.config(bg="#EAB71D", text="🧭", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
 
     player_path.clear()
     player_path.append((col, row))
 
     # Reset button
-    reset_button = Button(UI_frame, text='Reset', command=reset_path, font=("Times New Roman", 14), bg='red')
-    reset_button.grid(row=5, column=0, padx=5, pady=(10, 10))  # Ubah kolom agar tak bentrok
+    reset_button = Button(UI_frame, text='🔄 Reset Path', command=reset_path, 
+                         font=("Segoe UI Emoji", 12, 'bold'), bg='#E67E22', fg='white',
+                         relief=RAISED, bd=3, padx=10, pady=5)
+    reset_button.grid(row=6, column=0, padx=10, pady=10, sticky='ew')  # Ubah kolom agar tak bentrok
     
 
 def dijkstra(start, end):
@@ -254,7 +264,7 @@ def generate_walls():
         if not 0 <= density <= 1:
             raise ValueError
     except ValueError:
-        messagebox.showerror("Invalid input", "Please enter a number between 0.0 and 1.0")
+        messagebox.showerror("❌ Invalid Input", "Please enter a number between 0.0 and 1.0")
         return
 
     # Reset semua obstacle dulu
@@ -281,12 +291,12 @@ def on_key(event):
 
 # Main Window
 root = Tk()
-root.title('Guess the Dijkstra shortest path')
-root.maxsize(900, 900)
-root.config(bg='black')
+root.title('🎮 Guess the Dijkstra shortest path')
+root.maxsize(1000, 700)
+root.config(bg='#34495E')
 root.bind("<Key>", on_key)
 
-font = ("Helvetica", 11)
+# font = ("Helvetica", 11)
 
 # Variables
 WIDTH = 500
@@ -294,26 +304,86 @@ ROWS = 25
 grid = []
 
 # UI FRAME LAYOUT
-UI_frame = Frame(root, width=800, height=600, bg='black')
-UI_frame.grid(row=0, column=0, padx=10, pady=5)
+UI_frame = Frame(root, width=300, height=600, bg='#2C3E50', relief=RIDGE, bd=2)
+UI_frame.grid(row=0, column=0, padx=15, pady=15, sticky='nsew')
+UI_frame.grid_propagate(False)
 
-# Create Canvas
-canvas = Canvas(root, width=WIDTH, height=WIDTH, bg='white')
-canvas.grid(row=0, column=1, padx=10, pady=5)
+# Title Label
+title_label = Label(UI_frame, text="🎯 Dijkstra Adventure", 
+                   font=("Segoe UI Emoji", 18, 'bold'), fg='#ECF0F1', bg='#2C3E50')
+title_label.grid(row=0, column=0, pady=(20, 10), padx=10)
 
-# UI
-start_button = Button(UI_frame, text='Start Game', command=start_game, font = ("Times New Roman", 14), bg='lime')
-start_button.grid(row=5, column=0, padx=5, pady=(10, 10))
-Label(UI_frame, text="Wall Density (0.0 - 0.4):", font=font, fg='white', bg='black').grid(row=6, column=0, pady=(5, 0))
-density_entry = Entry(UI_frame, width=10, font=font)
-density_entry.grid(row=7, column=0, pady=(0, 10))
-density_entry.insert(0, "0.1") # Nilai default
-generate_button = Button(UI_frame, text='Generate Walls', command=generate_walls, font=("Times New Roman", 12), bg='orange')
-generate_button.grid(row=8, column=0, pady=(5, 10))
-reset_all_button = Button(UI_frame, text='Reset All', command=reset_all, font=("Times New Roman", 12), bg='red')
-reset_all_button.grid(row=9, column=0, pady=(5, 10))
+# Instructions
+instructions = """
+🎮 How to Play:
+1️⃣ Click to place Start (▶️)
+2️⃣ Click to place Finish (🏁)  
+3️⃣ Click to add Trees (🌲) or just use Generate trees button
+4️⃣ Press Start Game
+5️⃣ Use WASD or Arrow keys
+
+🎯 Goal: Find the shortest path!
+"""
+instructions_label = Label(UI_frame, text=instructions, 
+                          font=("Segoe UI Emoji", 10), fg='#BDC3C7', bg='#2C3E50',
+                          justify=LEFT, wraplength=250)
+instructions_label.grid(row=1, column=0, pady=10, padx=10, sticky='w')
+
+# Create Canvas with border
+canvas_frame = Frame(root, bg='#27AE60', relief=RIDGE, bd=3)
+canvas_frame.grid(row=0, column=1, padx=15, pady=15)
+
+canvas = Canvas(canvas_frame, width=WIDTH, height=WIDTH, bg='#58D68D', 
+               relief=SUNKEN, bd=2)
+canvas.pack(padx=5, pady=5)
+
+# UI Buttons with better styling
+button_style = {
+    'font': ("Segoe UI Emoji", 12, 'bold'),
+    'relief': RAISED,
+    'bd': 3,
+    'padx': 15,
+    'pady': 8
+}
+
+start_button = Button(UI_frame, text='▶️ Start Game', command=start_game, 
+                     bg='#27AE60', fg='white', **button_style)
+start_button.grid(row=2, column=0, padx=10, pady=10, sticky='ew')
+
+# Separator
+separator1 = ttk.Separator(UI_frame, orient='horizontal')
+separator1.grid(row=3, column=0, sticky='ew', padx=20, pady=10)
+
+# Wall Generation Section
+# wall_label = Label(UI_frame, text="🌲 Generate Forest", 
+#                   font=("Segoe UI Emoji", 14, 'bold'), fg='#E67E22', bg='#2C3E50')
+# wall_label.grid(row=4, column=0, pady=(10, 5))
+
+density_label = Label(UI_frame, text="Tree Density (0.0 - 0.4):", 
+                     font=("Segoe UI Emoji", 10), fg='#BDC3C7', bg='#2C3E50')
+density_label.grid(row=5, column=0, pady=(5, 0))
+
+density_entry = Entry(UI_frame, width=15, font=("Segoe UI Emoji", 11), 
+                     justify=CENTER, relief=SUNKEN, bd=2)
+density_entry.grid(row=6, column=0, pady=(5, 10))
+density_entry.insert(0, "0.15")  # Default value
+
+generate_button = Button(UI_frame, text='🌳 Generate Trees', command=generate_walls, 
+                        bg='#E67E22', fg='white', **button_style)
+generate_button.grid(row=7, column=0, padx=10, pady=5, sticky='ew')
+
+# Separator
+separator2 = ttk.Separator(UI_frame, orient='horizontal')
+separator2.grid(row=8, column=0, sticky='ew', padx=20, pady=15)
+
+reset_all_button = Button(UI_frame, text='🔄 Reset All', command=reset_all, 
+                         bg='#EAB71D', fg='white', **button_style)
+reset_all_button.grid(row=9, column=0, padx=10, pady=10, sticky='ew')
+
+
+# Make UI responsive
+UI_frame.grid_columnconfigure(0, weight=1)
 
 grid = make_grid(WIDTH, ROWS)
-
 
 root.mainloop()
