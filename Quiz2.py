@@ -121,25 +121,14 @@ def move_player(dx, dy):
             player_path.append((new_x, new_y))
 
         if next_spot.end:
-            shortest_path = dijkstra(Spot.start_point, Spot.end_point)
-
-            # Warnai shortest path (kecuali start dan end)
-            for x, y in shortest_path:
-                if (x, y) != Spot.start_point and (x, y) != Spot.end_point:
-                    grid[y][x].button.config(bg="yellow")
-
-            if player_path == shortest_path:
-                messagebox.showinfo("You win!", "You followed the correct shortest path!")
-            else:
-                messagebox.showinfo("Incorrect path", "That's not the shortest path.")
-
-            print("Player path:", player_path)
-            print("Shortest path:", shortest_path)
+            end_game()
 
 def reset_path():
     for x, y in player_path:
         if (x, y) == Spot.start_point:
             grid[y][x].button.config(bg="Orange")
+        elif (x, y) == Spot.end_point:
+            grid[y][x].button.config(bg="lime green")
         else:
             grid[y][x].button.config(bg="gray90")
     
@@ -170,6 +159,21 @@ def reset_all():
     if reset_button:
         reset_button.grid_remove()  # Remove reset button if it exists
 
+def end_game():
+    shortest_path = dijkstra(Spot.start_point, Spot.end_point)
+
+    # Warnai shortest path (kecuali start dan end)
+    for x, y in shortest_path:
+        if (x, y) != Spot.start_point and (x, y) != Spot.end_point:
+            grid[y][x].button.config(bg="yellow")
+
+    if player_path == shortest_path:
+        messagebox.showinfo("You win!", "You followed Dijkstra's shortest path!")
+    else:
+        messagebox.showinfo("Incorrect path", "That's not Dijkstra's shortest path.")
+
+    print("Player path:", player_path)
+    print("Shortest path:", shortest_path)
 
 def start_game():
     global reset_button  # <--- Tambah ini
