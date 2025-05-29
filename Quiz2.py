@@ -1,5 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
+import random
+import heapq
+
+reset_button = None  # Dideklarasikan global
 
 # define class - spot
 class Spot:
@@ -117,8 +121,20 @@ def move_player(dx, dy):
             player_path.append((new_x, new_y))
 
         if next_spot.end:
-            messagebox.showinfo("Success", "You reached the goal!")
+            shortest_path = dijkstra(Spot.start_point, Spot.end_point)
+
+            # Warnai shortest path (kecuali start dan end)
+            for x, y in shortest_path:
+                if (x, y) != Spot.start_point and (x, y) != Spot.end_point:
+                    grid[y][x].button.config(bg="yellow")
+
+            if player_path == shortest_path:
+                messagebox.showinfo("You win!", "You followed the correct shortest path!")
+            else:
+                messagebox.showinfo("Incorrect path", "That's not the shortest path.")
+
             print("Player path:", player_path)
+            print("Shortest path:", shortest_path)
 
 def reset_path():
     for x, y in player_path:
@@ -135,28 +151,118 @@ def reset_path():
     # Reset and initialize player path
     player_path.clear()
     player_path.append((col, row))
+    
+def reset_all():
+    Spot.start_point = None
+    Spot.end_point = None
+    player_path.clear()
+    player_position[0] = None
+
+    for row in grid:
+        for spot in row:
+            spot.start = False
+            spot.end = False
+            spot.obstacle = False
+            spot.clicked = False
+            spot.button.config(bg='gray90', state=NORMAL)
+            
+    start_button.grid()  # Menampilkan kembali tombol Start Game
+    if reset_button:
+        reset_button.grid_remove()  # Remove reset button if it exists
+
 
 def start_game():
+    global reset_button  # <--- Tambah ini
     if not Spot.start_point or not Spot.end_point: 
         messagebox.showinfo("No start/end", "Place starting and ending points")
         return
     for row in grid:
         for spot in row:
-            spot.disable() # Disable buttons in the grid when game starts
+            spot.disable()
     start_button.grid_remove()
 
-    # Set initial player position
     col, row = Spot.start_point
     player_position[0] = (col, row)
-    grid[row][col].button.config(bg="red")  # Starting player color
+    grid[row][col].button.config(bg="red")
 
-    # Reset and initialize player path
     player_path.clear()
     player_path.append((col, row))
 
     # Reset button
-    reset_button = Button(UI_frame, text='Reset', command=reset_path, font = ("Times New Roman", 14), bg='red')
-    reset_button.grid(row=5, column=0, padx=5, pady=(10, 10))
+    reset_button = Button(UI_frame, text='Reset', command=reset_path, font=("Times New Roman", 14), bg='red')
+    reset_button.grid(row=5, column=0, padx=5, pady=(10, 10))  # Ubah kolom agar tak bentrok
+    
+
+def dijkstra(start, end):
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+    visited = set()
+    prev = {}
+    dist = { (x, y): float('inf') for y in range(ROWS) for x in range(ROWS) }
+    dist[start] = 0
+
+    heap = [(0, start)]
+
+    while heap:
+        current_dist, current = heapq.heappop(heap)
+        if current in visited:
+            continue
+        visited.add(current)
+
+        if current == end:
+            break
+
+        x, y = current
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < ROWS and 0 <= ny < ROWS:
+                neighbor = (nx, ny)
+                if grid[ny][nx].obstacle or neighbor in visited:
+                    continue
+                new_dist = current_dist + 1
+                if new_dist < dist[neighbor]:
+                    dist[neighbor] = new_dist
+                    prev[neighbor] = current
+                    heapq.heappush(heap, (new_dist, neighbor))
+
+    # Reconstruct path
+    path = []
+    current = end
+    while current in prev:
+        path.append(current)
+        current = prev[current]
+    path.append(start)
+    path.reverse()
+    return path
+
+
+def auto_generate_walls(density=0.2):
+    """Mengisi grid dengan dinding secara acak. Density antara 0 dan 1."""
+    for row in grid:
+        for spot in row:
+            if not spot.start and not spot.end:
+                if random.random() < density:
+                    spot.make_obstacle()
+
+
+def generate_walls():
+    try:
+        density = float(density_entry.get())
+        if not 0 <= density <= 1:
+            raise ValueError
+    except ValueError:
+        messagebox.showerror("Invalid input", "Please enter a number between 0.0 and 1.0")
+        return
+
+    # Reset semua obstacle dulu
+    for row in grid:
+        for spot in row:
+            if spot.obstacle and not spot.start and not spot.end:
+                spot.reset()
+                spot.obstacle = False
+                spot.clicked = False
+
+    auto_generate_walls(density)
+
 
 def on_key(event):
     key = event.keysym
@@ -194,6 +300,16 @@ canvas.grid(row=0, column=1, padx=10, pady=5)
 # UI
 start_button = Button(UI_frame, text='Start Game', command=start_game, font = ("Times New Roman", 14), bg='lime')
 start_button.grid(row=5, column=0, padx=5, pady=(10, 10))
+Label(UI_frame, text="Wall Density (0.0 - 0.4):", font=font, fg='white', bg='black').grid(row=6, column=0, pady=(5, 0))
+density_entry = Entry(UI_frame, width=10, font=font)
+density_entry.grid(row=7, column=0, pady=(0, 10))
+density_entry.insert(0, "0.1") # Nilai default
+generate_button = Button(UI_frame, text='Generate Walls', command=generate_walls, font=("Times New Roman", 12), bg='orange')
+generate_button.grid(row=8, column=0, pady=(5, 10))
+reset_all_button = Button(UI_frame, text='Reset All', command=reset_all, font=("Times New Roman", 12), bg='red')
+reset_all_button.grid(row=9, column=0, pady=(5, 10))
 
 grid = make_grid(WIDTH, ROWS)
+
+
 root.mainloop()
