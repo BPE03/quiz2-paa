@@ -120,7 +120,7 @@ def move_player(dx, dy):
         
         # Update position
         player_position[0] = (new_x, new_y)
-        next_spot.button.config(bg="#EAB71D", text="🧭", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
+        next_spot.button.config(bg="#EAB71D", text="👣", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
 
         # Record move if not already visited
         if (new_x, new_y) not in player_path:
@@ -137,12 +137,12 @@ def reset_path():
         elif (x, y) == Spot.end_point:
             grid[y][x].button.config(bg="#00A846", text="🏁", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
         else:
-            grid[y][x].button.config(bg="#6B6B6B", text="", fg="black")
+            grid[y][x].button.config(bg="#90EE90", text="", fg="black")
     
     # Set initial player position
     col, row = Spot.start_point
     player_position[0] = (col, row)
-    grid[row][col].button.config(bg="#EAB71D", text="🧭", fg="white", font=('Segoe UI Emoji', 12, 'bold'))  # Starting player color
+    grid[row][col].button.config(bg="#EAB71D", text="👣", fg="white", font=('Segoe UI Emoji', 12, 'bold'))  # Starting player color
 
     # Reset and initialize player path
     player_path.clear()
@@ -195,7 +195,7 @@ def start_game():
 
     col, row = Spot.start_point
     player_position[0] = (col, row)
-    grid[row][col].button.config(bg="#EAB71D", text="🧭", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
+    grid[row][col].button.config(bg="#EAB71D", text="👣", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
 
     player_path.clear()
     player_path.append((col, row))
