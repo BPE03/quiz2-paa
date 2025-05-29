@@ -97,6 +97,7 @@ player_position = [None]  # Using list to make it mutable inside key handlers
 player_path = []  # Stores each (col, row) that the player visits
 
 def move_player(dx, dy):
+    global player_path
     if player_position[0] is None:
         return
 
@@ -122,8 +123,21 @@ def move_player(dx, dy):
         player_position[0] = (new_x, new_y)
         next_spot.button.config(bg="#EAB71D", text="👣", fg="white", font=('Segoe UI Emoji', 12, 'bold'))
 
-        # Record move if not already visited
-        if (new_x, new_y) not in player_path:
+        # PERBAIKAN: Cek apakah posisi baru sudah ada di player_path
+        if (new_x, new_y) in player_path:
+            # Jika sudah ada, hapus semua langkah setelah posisi ini (backtrack)
+            index = player_path.index((new_x, new_y))
+            # Hapus jejak visual dari posisi yang dibatalkan
+            for i in range(index + 1, len(player_path)):
+                cancel_x, cancel_y = player_path[i]
+                cancel_spot = grid[cancel_y][cancel_x]
+                if not cancel_spot.start and not cancel_spot.end:
+                    cancel_spot.button.config(bg="#90EE90", text="", fg="black")
+            
+            # Potong player_path sampai posisi saat ini
+            player_path = player_path[:index + 1]
+        else:
+            # Jika belum ada, tambahkan ke path
             player_path.append((new_x, new_y))
 
         if next_spot.end:
